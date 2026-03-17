@@ -1,6 +1,6 @@
 package com.edutech.progressive.entity;
 
-public class Teacher {
+public class Teacher implements Comparable<Teacher> {
 
     private int teacherId;
     private String fullName;
@@ -61,5 +61,11 @@ public class Teacher {
     }
     public void setYearsOfExperience(int yearsOfExperience) {
         this.yearsOfExperience = yearsOfExperience;
+    }
+
+    @Override
+    public int compareTo(Teacher otherTeacher) {
+        if (otherTeacher == null) return -1; // non-null comes before null
+        return Integer.compare(this.yearsOfExperience, otherTeacher.yearsOfExperience);
     }
 }
