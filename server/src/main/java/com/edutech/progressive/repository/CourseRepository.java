@@ -2,9 +2,14 @@ package com.edutech.progressive.repository;
 
 import com.edutech.progressive.entity.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-@Repository
+import java.util.List;
+
 public interface CourseRepository extends JpaRepository<Course, Integer> {
-    // Day 6: no custom methods required yet
+
+    Course findByCourseId(int courseId);
+
+    List<Course> findAllByTeacherId(int teacherId);
+
+    void deleteByTeacherId(int teacherId);
 }
