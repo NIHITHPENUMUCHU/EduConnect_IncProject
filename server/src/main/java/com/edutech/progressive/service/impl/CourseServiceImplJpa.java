@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -18,14 +19,14 @@ public class CourseServiceImplJpa implements CourseService {
         this.courseRepository = courseRepository;
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public List<Course> getAllCourses() throws Exception {
         return courseRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public Course getCourseById(int courseId) throws Exception {
         return courseRepository.findById(courseId).orElse(null);
     }
@@ -38,6 +39,9 @@ public class CourseServiceImplJpa implements CourseService {
 
     @Override
     public void updateCourse(Course course) throws Exception {
+        if (course.getCourseId() == 0) {
+            throw new IllegalArgumentException("courseId must be provided for update");
+        }
         if (!courseRepository.existsById(course.getCourseId())) {
             throw new IllegalArgumentException("Course not found with id: " + course.getCourseId());
         }
@@ -47,14 +51,20 @@ public class CourseServiceImplJpa implements CourseService {
     @Override
     public void deleteCourse(int courseId) throws Exception {
         if (!courseRepository.existsById(courseId)) {
+            // For Day 6, throwing is acceptable to indicate not found
             throw new IllegalArgumentException("Course not found with id: " + courseId);
         }
         courseRepository.deleteById(courseId);
     }
 
-    @Transactional(readOnly = true)
+    // Day 6: No repository query method yet; filter in-memory
     @Override
+    @Transactional(readOnly = true)
     public List<Course> getAllCourseByTeacherId(int teacherId) {
-        return courseRepository.findAllByTeacherId(teacherId);
+        return courseRepository.findAll()
+                .stream()
+                .filter(c -> c.getTeacherId() == teacherId)
+                .collect(Collectors.toList());
     }
 }
+

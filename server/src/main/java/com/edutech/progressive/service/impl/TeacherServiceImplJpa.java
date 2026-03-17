@@ -19,8 +19,8 @@ public class TeacherServiceImplJpa implements TeacherService {
         this.teacherRepository = teacherRepository;
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public List<Teacher> getAllTeachers() throws Exception {
         return teacherRepository.findAll();
     }
@@ -31,8 +31,8 @@ public class TeacherServiceImplJpa implements TeacherService {
         return saved.getTeacherId();
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public List<Teacher> getTeacherSortedByExperience() throws Exception {
         List<Teacher> list = teacherRepository.findAll();
         list.sort(Comparator.comparingInt(Teacher::getYearsOfExperience));
@@ -41,6 +41,9 @@ public class TeacherServiceImplJpa implements TeacherService {
 
     @Override
     public void updateTeacher(Teacher teacher) throws Exception {
+        if (teacher.getTeacherId() == 0) {
+            throw new IllegalArgumentException("teacherId must be provided for update");
+        }
         if (!teacherRepository.existsById(teacher.getTeacherId())) {
             throw new IllegalArgumentException("Teacher not found with id: " + teacher.getTeacherId());
         }
@@ -55,8 +58,8 @@ public class TeacherServiceImplJpa implements TeacherService {
         teacherRepository.deleteById(teacherId);
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public Teacher getTeacherById(int teacherId) throws Exception {
         return teacherRepository.findById(teacherId).orElse(null);
     }
