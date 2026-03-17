@@ -1,21 +1,18 @@
 package com.edutech.progressive.service;
 
-import com.edutech.progressive.entity.Course;
-
 import java.util.List;
 
+import com.edutech.progressive.entity.Course;
+
 public interface CourseService {
+    List<Course> getAllCourses() throws Exception;
+    Course getCourseById(int courseId) throws Exception;
+    Integer addCourse(Course course) throws Exception;
+    void updateCourse(Course course) throws Exception;
+    void deleteCourse(int courseId) throws Exception;
 
-    public List<Course> getAllCourses();
-
-    public Course getCourseById(int courseId);
-
-    public Integer addCourse(Course course);
-
-    public void updateCourse(Course course);
-
-    public void deleteCourse(int courseId);
-
-    //Do not implement these methods in CourseServiceImplJdbc.java class
-    default public List<Course> getAllCourseByTeacherId(int teacherId) { return null; }
+    default List<Course> getAllCourseByTeacherId(int teacherId) {
+        // Not implemented in JDBC service for Day 3
+        return List.of();
+    }
 }

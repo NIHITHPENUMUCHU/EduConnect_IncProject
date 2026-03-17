@@ -12,4 +12,5 @@ public class StudentDTO {
     private String email;
     private String address;
 
+    // Getters and setters (omitted for brevity) — add as needed later (Day 13)
 }

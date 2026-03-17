@@ -1,33 +1,43 @@
 package com.edutech.progressive.controller;
 
-import com.edutech.progressive.entity.Teacher;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.edutech.progressive.entity.Teacher;
 
 import java.util.List;
 
+@RestController
+@RequestMapping("/teacher")
 public class TeacherController {
 
+    @GetMapping
     public ResponseEntity<List<Teacher>> getAllTeachers() {
-        return null;
+        return null; // Day 4 placeholder
     }
 
-    public ResponseEntity<Teacher> getTeacherById(int teacherId) {
-        return null;
+    @GetMapping("/{teacherId}")
+    public ResponseEntity<Teacher> getTeacherById(@PathVariable int teacherId) {
+        return null; // Day 4 placeholder
     }
 
-    public ResponseEntity<Integer> addTeacher(Teacher teacher) {
-        return null;
+    @PostMapping
+    public ResponseEntity<Integer> addTeacher(@RequestBody Teacher teacher) {
+        return null; // Day 4 placeholder
     }
 
-    public ResponseEntity<Void> updateTeacher(int teacherId, Teacher teacher) {
-        return null;
+    @PutMapping("/{teacherId}")
+    public ResponseEntity<Void> updateTeacher(@PathVariable int teacherId, @RequestBody Teacher teacher) {
+        return null; // Day 4 placeholder
     }
 
-    public ResponseEntity<Void> deleteTeacher(int teacherId) {
-        return null;
+    @DeleteMapping("/{teacherId}")
+    public ResponseEntity<Void> deleteTeacher(@PathVariable int teacherId) {
+        return null; // Day 4 placeholder
     }
 
+    @GetMapping("/yearsofexperience")
     public ResponseEntity<List<Teacher>> getTeacherSortedByYearsOfExperience() {
-        return null;
+        return null; // Day 4 placeholder
     }
 }

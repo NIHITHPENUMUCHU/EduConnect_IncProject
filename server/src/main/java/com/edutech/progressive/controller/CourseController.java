@@ -1,32 +1,43 @@
 package com.edutech.progressive.controller;
 
-import com.edutech.progressive.entity.Course;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.edutech.progressive.entity.Course;
 
 import java.util.List;
 
+@RestController
+@RequestMapping("/course")
 public class CourseController {
-    public ResponseEntity<List<Course>> getAllCourses() {
-        return null;
+
+    @GetMapping
+    public List<Course> getAllCourses() {
+        return null; // Day 4 placeholder
     }
 
-    public ResponseEntity<Course> getCourseById(int courseId) {
-        return null;
+    @GetMapping("/{courseId}")
+    public Course getCourseById(@PathVariable int courseId) {
+        return null; // Day 4 placeholder
     }
 
-    public ResponseEntity<Integer> addCourse(Course course) {
-        return null;
+    @PostMapping
+    public int addCourse(@RequestBody Course course) {
+        return -1; // Day 4 placeholder
     }
 
-    public ResponseEntity<Void> updateCourse(int courseId, Course course) {
-        return null;
+    @PutMapping("/{courseId}")
+    public void updateCourse(@PathVariable int courseId, @RequestBody Course course) {
+        // Day 4 placeholder
     }
 
-    public ResponseEntity<Void> deleteCourse(int courseId) {
-        return null;
+    @DeleteMapping("/{courseId}")
+    public void deleteCourse(@PathVariable int courseId) {
+        // Day 4 placeholder
     }
 
-    public ResponseEntity<List<Course>> getAllCourseByTeacherId(int teacherId) {
-        return null;
+    @GetMapping("/teacher/{teacherId}")
+    public List<Course> getAllCourseByTeacherId(@PathVariable int teacherId) {
+        return null; // Day 4 placeholder
     }
 }

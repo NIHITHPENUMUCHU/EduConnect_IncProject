@@ -1,29 +1,19 @@
 package com.edutech.progressive.service;
 
+import java.util.List;
+
 import com.edutech.progressive.dto.TeacherDTO;
 import com.edutech.progressive.entity.Teacher;
 
-import java.util.List;
-
 public interface TeacherService {
+    List<Teacher> getAllTeachers() throws Exception;
+    Integer addTeacher(Teacher teacher) throws Exception;
+    List<Teacher> getTeacherSortedByExperience() throws Exception;
 
-    public List<Teacher> getAllTeachers();
+    default void emptyArrayList() {}
+    default void updateTeacher(Teacher teacher) throws Exception {}
+    default void deleteTeacher(int teacherId) throws Exception {}
+    default Teacher getTeacherById(int teacherId) throws Exception { return null; }
 
-    public Integer addTeacher(Teacher teacher);
-
-    public List<Teacher> getTeacherSortedByExperience();
-
-    default void emptyArrayList() {
-    }
-
-    //Do not implement these methods in TeacherServiceImplArraylist.java class
-    default public void updateTeacher(Teacher teacher) { }
-
-    default public void deleteTeacher(int teacherId) { }
-
-    default Teacher getTeacherById(int teacherId) { return null; }
-
-    //Do not implement these methods in TeacherServiceImplArraylist.java and TeacherServiceImplJdbc.java class
-    //Do not implement in TeacherServiceImplJpa.java until Day-13
-    default public void modifyTeacherDetails(TeacherDTO teacherDTO) { }
+    default void modifyTeacherDetails(TeacherDTO teacherDTO) {}
 }
