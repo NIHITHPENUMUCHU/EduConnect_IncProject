@@ -12,3 +12,4 @@ public interface TeacherDAO {
     void deleteTeacher(int teacherId) throws SQLException;
     List<Teacher> getAllTeachers() throws SQLException;
 }
+

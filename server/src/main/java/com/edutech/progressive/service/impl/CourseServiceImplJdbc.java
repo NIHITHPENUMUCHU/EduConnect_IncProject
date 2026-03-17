@@ -1,15 +1,20 @@
 package com.edutech.progressive.service.impl;
 
-import java.sql.SQLException;
-import java.util.List;
-
 import com.edutech.progressive.dao.CourseDAO;
+import com.edutech.progressive.dao.CourseDAOImpl;
 import com.edutech.progressive.entity.Course;
 import com.edutech.progressive.service.CourseService;
 
+import java.sql.SQLException;
+import java.util.List;
+
 public class CourseServiceImplJdbc implements CourseService {
 
-    private final CourseDAO courseDAO;
+    private CourseDAO courseDAO;
+
+    public CourseServiceImplJdbc() {
+        this.courseDAO = new CourseDAOImpl();
+    }
 
     public CourseServiceImplJdbc(CourseDAO courseDAO) {
         this.courseDAO = courseDAO;
@@ -29,7 +34,7 @@ public class CourseServiceImplJdbc implements CourseService {
         try {
             return courseDAO.getCourseById(courseId);
         } catch (SQLException e) {
-            throw new Exception("Failed to fetch course with id: " + courseId, e);
+            throw new Exception("Failed to fetch course", e);
         }
     }
 
@@ -47,7 +52,7 @@ public class CourseServiceImplJdbc implements CourseService {
         try {
             courseDAO.updateCourse(course);
         } catch (SQLException e) {
-            throw new Exception("Failed to update course with id: " + course.getCourseId(), e);
+            throw new Exception("Failed to update course", e);
         }
     }
 
@@ -56,7 +61,7 @@ public class CourseServiceImplJdbc implements CourseService {
         try {
             courseDAO.deleteCourse(courseId);
         } catch (SQLException e) {
-            throw new Exception("Failed to delete course with id: " + courseId, e);
+            throw new Exception("Failed to delete course", e);
         }
     }
 }

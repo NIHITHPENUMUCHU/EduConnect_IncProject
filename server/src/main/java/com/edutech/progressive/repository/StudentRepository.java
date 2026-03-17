@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Integer> {
+    // Convenience finders (useful for later milestones)
     Student findByStudentId(int studentId);
     Student findByEmail(String email);
 }

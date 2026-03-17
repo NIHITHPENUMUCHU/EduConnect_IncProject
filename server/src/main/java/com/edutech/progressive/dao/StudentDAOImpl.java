@@ -3,7 +3,6 @@ package com.edutech.progressive.dao;
 import com.edutech.progressive.config.DatabaseConnectionManager;
 import com.edutech.progressive.dao.StudentDAO;
 import com.edutech.progressive.entity.Student;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,35 +10,31 @@ import java.util.List;
 public class StudentDAOImpl implements StudentDAO {
 
     @Override
-public int addStudent(Student student) throws SQLException {
-    String sql = "INSERT INTO student (full_name, date_of_birth, contact_number, email, address) VALUES (?, ?, ?, ?, ?)";
-
-    try (Connection con = DatabaseConnectionManager.getConnection();
-         PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-        ps.setString(1, student.getFullName());
-
-        if (student.getDateOfBirth() != null) {
-            ps.setDate(2, new java.sql.Date(student.getDateOfBirth().getTime()));
-        } else {
-            ps.setNull(2, Types.DATE);
+    public int addStudent(Student student) throws SQLException {
+        String sql = "INSERT INTO student (full_name, date_of_birth, contact_number, email, address) VALUES (?, ?, ?, ?, ?)";
+        try (Connection con = DatabaseConnectionManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, student.getFullName());
+            if (student.getDateOfBirth() != null) {
+                ps.setDate(2, new java.sql.Date(student.getDateOfBirth().getTime()));
+            } else {
+                ps.setNull(2, Types.DATE);
+            }
+            ps.setString(3, student.getContactNumber());
+            ps.setString(4, student.getEmail());
+            ps.setString(5, student.getAddress());
+            int updated = ps.executeUpdate();
+            if (updated == 0) return -1;
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+            try (PreparedStatement ps2 = con.prepareStatement("SELECT student_id FROM student ORDER BY student_id DESC LIMIT 1");
+                 ResultSet rs2 = ps2.executeQuery()) {
+                if (rs2.next()) return rs2.getInt(1);
+            }
+            return -1;
         }
-
-        ps.setString(3, student.getContactNumber());
-        ps.setString(4, student.getEmail());
-        ps.setString(5, student.getAddress());
-
-        int result = ps.executeUpdate();
-        if (result == 0) return -1;
-
-        ResultSet rs = ps.getGeneratedKeys();
-        if (rs.next()) {
-            return rs.getInt(1);
-        }
-
-        return -1;
     }
-}
 
     @Override
     public Student getStudentById(int studentId) throws SQLException {
@@ -51,8 +46,8 @@ public int addStudent(Student student) throws SQLException {
                 if (rs.next()) {
                     Student s = new Student();
                     s.setStudentId(rs.getInt("student_id"));
-                    Date dob = rs.getDate("date_of_birth");
-                    s.setDateOfBirth(dob != null ? new java.util.Date(dob.getTime()) : null);
+                    java.sql.Date dobSql = rs.getDate("date_of_birth");
+                    s.setDateOfBirth(dobSql != null ? new java.util.Date(dobSql.getTime()) : null);
                     s.setFullName(rs.getString("full_name"));
                     s.setContactNumber(rs.getString("contact_number"));
                     s.setEmail(rs.getString("email"));
@@ -103,8 +98,8 @@ public int addStudent(Student student) throws SQLException {
             while (rs.next()) {
                 Student s = new Student();
                 s.setStudentId(rs.getInt("student_id"));
-                Date dob = rs.getDate("date_of_birth");
-                s.setDateOfBirth(dob != null ? new java.util.Date(dob.getTime()) : null);
+                java.sql.Date dobSql = rs.getDate("date_of_birth");
+                s.setDateOfBirth(dobSql != null ? new java.util.Date(dobSql.getTime()) : null);
                 s.setFullName(rs.getString("full_name"));
                 s.setContactNumber(rs.getString("contact_number"));
                 s.setEmail(rs.getString("email"));

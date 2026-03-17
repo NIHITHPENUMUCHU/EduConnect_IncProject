@@ -12,3 +12,4 @@ public interface CourseDAO {
     void deleteCourse(int courseId) throws SQLException;
     List<Course> getAllCourses() throws SQLException;
 }
+

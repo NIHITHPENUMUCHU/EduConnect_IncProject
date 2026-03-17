@@ -1,5 +1,9 @@
 package com.edutech.progressive.repository;
 
+import com.edutech.progressive.entity.Teacher;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface TeacherRepository {
+public interface TeacherRepository extends JpaRepository<Teacher, Integer> {
+    // (Optional convenience)
+    // Teacher findByTeacherId(int teacherId);
 }

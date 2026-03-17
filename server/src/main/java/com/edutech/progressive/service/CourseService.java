@@ -12,7 +12,6 @@ public interface CourseService {
     void deleteCourse(int courseId) throws Exception;
 
     default List<Course> getAllCourseByTeacherId(int teacherId) {
-        // Not implemented in JDBC service for Day 3
         return List.of();
     }
 }
