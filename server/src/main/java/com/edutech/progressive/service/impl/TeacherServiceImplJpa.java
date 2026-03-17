@@ -1,6 +1,7 @@
 package com.edutech.progressive.service.impl;
 
 import com.edutech.progressive.entity.Teacher;
+import com.edutech.progressive.exception.TeacherAlreadyExistsException;
 import com.edutech.progressive.repository.CourseRepository;
 import com.edutech.progressive.repository.TeacherRepository;
 import com.edutech.progressive.service.TeacherService;
@@ -20,11 +21,13 @@ public class TeacherServiceImplJpa implements TeacherService {
     private final TeacherRepository teacherRepository;
     private final CourseRepository courseRepository;
 
+    // Used by tests
     public TeacherServiceImplJpa(TeacherRepository teacherRepository) {
         this.teacherRepository = teacherRepository;
         this.courseRepository = null;
     }
 
+    // Used by Spring
     @Autowired
     public TeacherServiceImplJpa(TeacherRepository teacherRepository,
                                  CourseRepository courseRepository) {
@@ -40,8 +43,14 @@ public class TeacherServiceImplJpa implements TeacherService {
 
     @Override
     public Integer addTeacher(Teacher teacher) throws Exception {
-        Teacher saved = teacherRepository.save(teacher);
-        return saved.getTeacherId();
+        if (teacher.getEmail() != null) {
+            Teacher exists = teacherRepository.findByEmail(teacher.getEmail());
+            if (exists != null) {
+                throw new TeacherAlreadyExistsException(
+                        "Teacher already exists with email: " + teacher.getEmail());
+            }
+        }
+        return teacherRepository.save(teacher).getTeacherId();
     }
 
     @Override
@@ -54,26 +63,23 @@ public class TeacherServiceImplJpa implements TeacherService {
 
     @Override
     public void updateTeacher(Teacher teacher) throws Exception {
-        if (!teacherRepository.existsById(teacher.getTeacherId())) {
-            throw new IllegalArgumentException(
-                "Teacher not found with id: " + teacher.getTeacherId()
-            );
+        if (teacher.getEmail() != null) {
+            Teacher exists = teacherRepository.findByEmail(teacher.getEmail());
+
+            // ✅ FIX: primitive int comparison
+            if (exists != null && exists.getTeacherId() != teacher.getTeacherId()) {
+                throw new TeacherAlreadyExistsException(
+                        "Another teacher already exists with email: " + teacher.getEmail());
+            }
         }
         teacherRepository.save(teacher);
     }
 
     @Override
     public void deleteTeacher(int teacherId) throws Exception {
-        if (!teacherRepository.existsById(teacherId)) {
-            throw new IllegalArgumentException(
-                "Teacher not found with id: " + teacherId
-            );
-        }
-
         if (courseRepository != null) {
             courseRepository.deleteByTeacherId(teacherId);
         }
-
         teacherRepository.deleteById(teacherId);
     }
 

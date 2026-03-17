@@ -9,6 +9,8 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 
     Course findByCourseId(int courseId);
 
+    Course findByCourseName(String courseName);
+
     List<Course> findAllByTeacherId(int teacherId);
 
     void deleteByTeacherId(int teacherId);
