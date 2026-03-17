@@ -1,22 +1,17 @@
 package com.edutech.progressive.service.impl;
 
 import com.edutech.progressive.dao.TeacherDAO;
-import com.edutech.progressive.dao.TeacherDAOImpl;
 import com.edutech.progressive.entity.Teacher;
 import com.edutech.progressive.service.TeacherService;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class TeacherServiceImplJdbc implements TeacherService {
 
-    private TeacherDAO teacherDAO;
-
-    public TeacherServiceImplJdbc() {
-        this.teacherDAO = new TeacherDAOImpl();
-    }
+    private final TeacherDAO teacherDAO;
 
     public TeacherServiceImplJdbc(TeacherDAO teacherDAO) {
         this.teacherDAO = teacherDAO;
@@ -27,30 +22,27 @@ public class TeacherServiceImplJdbc implements TeacherService {
         try {
             return teacherDAO.getAllTeachers();
         } catch (SQLException e) {
-            throw new Exception("Failed to fetch teachers", e);
+            throw new Exception("Failed to retrieve teachers from database.", e);
         }
     }
 
     @Override
     public Integer addTeacher(Teacher teacher) throws Exception {
         try {
-            int id = teacherDAO.addTeacher(teacher);
-            teacher.setTeacherId(id);
-            return id;
+            return teacherDAO.addTeacher(teacher);
         } catch (SQLException e) {
-            throw new Exception("Failed to add teacher", e);
+            throw new Exception("Failed to add new teacher.", e);
         }
     }
 
     @Override
     public List<Teacher> getTeacherSortedByExperience() throws Exception {
         try {
-            return teacherDAO.getAllTeachers()
-                    .stream()
-                    .sorted(Comparator.naturalOrder())
-                    .collect(Collectors.toList());
+            List<Teacher> list = new ArrayList<>(teacherDAO.getAllTeachers());
+            list.sort(Comparator.comparingInt(Teacher::getYearsOfExperience));
+            return list;
         } catch (SQLException e) {
-            throw new Exception("Failed to sort teachers", e);
+            throw new Exception("Failed to retrieve teachers sorted by experience.", e);
         }
     }
 
@@ -59,7 +51,7 @@ public class TeacherServiceImplJdbc implements TeacherService {
         try {
             teacherDAO.updateTeacher(teacher);
         } catch (SQLException e) {
-            throw new Exception("Failed to update teacher", e);
+            throw new Exception("Failed to update teacher with ID: " + teacher.getTeacherId(), e);
         }
     }
 
@@ -68,7 +60,7 @@ public class TeacherServiceImplJdbc implements TeacherService {
         try {
             teacherDAO.deleteTeacher(teacherId);
         } catch (SQLException e) {
-            throw new Exception("Failed to delete teacher", e);
+            throw new Exception("Failed to delete teacher with ID: " + teacherId, e);
         }
     }
 
@@ -77,7 +69,12 @@ public class TeacherServiceImplJdbc implements TeacherService {
         try {
             return teacherDAO.getTeacherById(teacherId);
         } catch (SQLException e) {
-            throw new Exception("Failed to fetch teacher", e);
+            throw new Exception("Failed to retrieve teacher with ID: " + teacherId, e);
         }
+    }
+
+    @Override
+    public void emptyArrayList() {
+        // Not used in JDBC implementation
     }
 }

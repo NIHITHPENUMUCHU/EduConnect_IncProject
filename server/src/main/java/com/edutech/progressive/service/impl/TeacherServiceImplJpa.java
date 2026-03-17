@@ -3,12 +3,14 @@ package com.edutech.progressive.service.impl;
 import com.edutech.progressive.entity.Teacher;
 import com.edutech.progressive.repository.TeacherRepository;
 import com.edutech.progressive.service.TeacherService;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
 
+@Primary
 @Service
 @Transactional
 public class TeacherServiceImplJpa implements TeacherService {
@@ -19,8 +21,8 @@ public class TeacherServiceImplJpa implements TeacherService {
         this.teacherRepository = teacherRepository;
     }
 
-    @Override
     @Transactional(readOnly = true)
+    @Override
     public List<Teacher> getAllTeachers() throws Exception {
         return teacherRepository.findAll();
     }
@@ -31,8 +33,8 @@ public class TeacherServiceImplJpa implements TeacherService {
         return saved.getTeacherId();
     }
 
-    @Override
     @Transactional(readOnly = true)
+    @Override
     public List<Teacher> getTeacherSortedByExperience() throws Exception {
         List<Teacher> list = teacherRepository.findAll();
         list.sort(Comparator.comparingInt(Teacher::getYearsOfExperience));
@@ -41,9 +43,6 @@ public class TeacherServiceImplJpa implements TeacherService {
 
     @Override
     public void updateTeacher(Teacher teacher) throws Exception {
-        if (teacher.getTeacherId() == 0) {
-            throw new IllegalArgumentException("teacherId must be provided for update");
-        }
         if (!teacherRepository.existsById(teacher.getTeacherId())) {
             throw new IllegalArgumentException("Teacher not found with id: " + teacher.getTeacherId());
         }
@@ -58,9 +57,11 @@ public class TeacherServiceImplJpa implements TeacherService {
         teacherRepository.deleteById(teacherId);
     }
 
-    @Override
     @Transactional(readOnly = true)
+    @Override
     public Teacher getTeacherById(int teacherId) throws Exception {
+        Teacher t = teacherRepository.findByTeacherId(teacherId);
+        if (t != null) return t;
         return teacherRepository.findById(teacherId).orElse(null);
     }
 }
