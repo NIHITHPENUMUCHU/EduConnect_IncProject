@@ -1,8 +1,9 @@
 package com.edutech.progressive.controller;
 
+import com.edutech.progressive.dto.TeacherDTO;
 import com.edutech.progressive.entity.Teacher;
+import com.edutech.progressive.exception.TeacherAlreadyExistsException;
 import com.edutech.progressive.service.TeacherService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,48 +14,81 @@ import java.util.List;
 public class TeacherController {
 
     private final TeacherService teacherService;
-
-    public TeacherController(@Qualifier("teacherServiceImplJpa") TeacherService teacherService) {
+    public TeacherController(TeacherService teacherService) {
         this.teacherService = teacherService;
     }
 
-    // GET /teacher
     @GetMapping
-    public ResponseEntity<List<Teacher>> getAllTeachers() throws Exception {
-        return ResponseEntity.ok(teacherService.getAllTeachers());
+    public ResponseEntity<List<Teacher>> getAllTeachers() {
+        try {
+            return ResponseEntity.ok(teacherService.getAllTeachers());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 
-    // GET /teacher/{teacherId}
     @GetMapping("/{teacherId}")
-    public ResponseEntity<Teacher> getTeacherById(@PathVariable int teacherId) throws Exception {
-        return ResponseEntity.ok(teacherService.getTeacherById(teacherId));
+    public ResponseEntity<Teacher> getTeacherById(@PathVariable int teacherId) {
+        try {
+            return ResponseEntity.ok(teacherService.getTeacherById(teacherId));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @PostMapping
-    public ResponseEntity<Integer> addTeacher(@RequestBody Teacher teacher) throws Exception {
-        Integer id = teacherService.addTeacher(teacher);
-        return ResponseEntity.status(201).body(id); // ✅ 201 CREATED
+    public ResponseEntity<Integer> addTeacher(@RequestBody Teacher teacher) {
+        try {
+            Integer id = teacherService.addTeacher(teacher);
+            return ResponseEntity.status(201).body(id);
+        } catch (TeacherAlreadyExistsException | IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 
-    // PUT /teacher/{teacherId}
     @PutMapping("/{teacherId}")
     public ResponseEntity<Void> updateTeacher(@PathVariable int teacherId,
-            @RequestBody Teacher teacher) throws Exception {
-        teacher.setTeacherId(teacherId);
-        teacherService.updateTeacher(teacher);
-        return ResponseEntity.ok().build();
+                                              @RequestBody Teacher teacher) {
+        try {
+            teacher.setTeacherId(teacherId);
+            teacherService.updateTeacher(teacher);
+            return ResponseEntity.ok().build();
+        } catch (TeacherAlreadyExistsException | IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 
-    // DELETE /teacher/{teacherId}
     @DeleteMapping("/{teacherId}")
-    public ResponseEntity<Void> deleteTeacher(@PathVariable int teacherId) throws Exception {
-        teacherService.deleteTeacher(teacherId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> deleteTeacher(@PathVariable int teacherId) {
+        try {
+            teacherService.deleteTeacher(teacherId);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 
-    // GET /teacher/yearsofexperience
-    @GetMapping("/yearsofexperience")
-    public ResponseEntity<List<Teacher>> getTeacherSortedByYearsOfExperience() throws Exception {
-        return ResponseEntity.ok(teacherService.getTeacherSortedByExperience());
+    // Day 13: Modify via DTO
+    @PutMapping("/modify")
+    public ResponseEntity<Void> modifyTeacherDetails(@RequestBody TeacherDTO dto) {
+        try {
+            // Exposed only if TeacherService declares method; if default, cast may be needed.
+            if (teacherService instanceof com.edutech.progressive.service.impl.TeacherServiceImplJpa) {
+                ((com.edutech.progressive.service.impl.TeacherServiceImplJpa) teacherService).modifyTeacherDetails(dto);
+            } else {
+                // If interface has default method, call it (no-op). Provided for compatibility.
+                // teacherService.modifyTeacherDetails(dto);
+                throw new IllegalStateException("Modify operation not supported in current service binding.");
+            }
+            return ResponseEntity.ok().build();
+        } catch (TeacherAlreadyExistsException | IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 }

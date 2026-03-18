@@ -1,8 +1,10 @@
 package com.edutech.progressive.service.impl;
 
+import com.edutech.progressive.dto.TeacherDTO;
 import com.edutech.progressive.entity.Teacher;
 import com.edutech.progressive.exception.TeacherAlreadyExistsException;
 import com.edutech.progressive.repository.CourseRepository;
+import com.edutech.progressive.repository.EnrollmentRepository;
 import com.edutech.progressive.repository.TeacherRepository;
 import com.edutech.progressive.service.TeacherService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,24 +21,28 @@ import java.util.List;
 public class TeacherServiceImplJpa implements TeacherService {
 
     private final TeacherRepository teacherRepository;
-    private final CourseRepository courseRepository;
+    private final CourseRepository courseRepository;        // may be null in tests
+    private final EnrollmentRepository enrollmentRepository; // not strictly used here; kept consistent
 
-    // Used by tests
+    // For unit tests (TeacherRepository only)
     public TeacherServiceImplJpa(TeacherRepository teacherRepository) {
         this.teacherRepository = teacherRepository;
         this.courseRepository = null;
+        this.enrollmentRepository = null;
     }
 
-    // Used by Spring
+    // For Spring (wider wiring if present)
     @Autowired
     public TeacherServiceImplJpa(TeacherRepository teacherRepository,
-                                 CourseRepository courseRepository) {
+                                 CourseRepository courseRepository,
+                                 EnrollmentRepository enrollmentRepository) {
         this.teacherRepository = teacherRepository;
         this.courseRepository = courseRepository;
+        this.enrollmentRepository = enrollmentRepository;
     }
 
-    @Override
     @Transactional(readOnly = true)
+    @Override
     public List<Teacher> getAllTeachers() throws Exception {
         return teacherRepository.findAll();
     }
@@ -53,8 +59,8 @@ public class TeacherServiceImplJpa implements TeacherService {
         return teacherRepository.save(teacher).getTeacherId();
     }
 
-    @Override
     @Transactional(readOnly = true)
+    @Override
     public List<Teacher> getTeacherSortedByExperience() throws Exception {
         List<Teacher> list = teacherRepository.findAll();
         list.sort(Comparator.comparingInt(Teacher::getYearsOfExperience));
@@ -65,9 +71,7 @@ public class TeacherServiceImplJpa implements TeacherService {
     public void updateTeacher(Teacher teacher) throws Exception {
         if (teacher.getEmail() != null) {
             Teacher exists = teacherRepository.findByEmail(teacher.getEmail());
-
-            // ✅ FIX: primitive int comparison
-            if (exists != null && exists.getTeacherId() != teacher.getTeacherId()) {
+            if (exists != null && !exists.getTeacherId().equals(teacher.getTeacherId())) {
                 throw new TeacherAlreadyExistsException(
                         "Another teacher already exists with email: " + teacher.getEmail());
             }
@@ -83,11 +87,50 @@ public class TeacherServiceImplJpa implements TeacherService {
         teacherRepository.deleteById(teacherId);
     }
 
-    @Override
     @Transactional(readOnly = true)
+    @Override
     public Teacher getTeacherById(int teacherId) throws Exception {
         Teacher t = teacherRepository.findByTeacherId(teacherId);
         if (t != null) return t;
         return teacherRepository.findById(teacherId).orElse(null);
+    }
+
+    /**
+     * Day 13: Modify teacher fields via DTO (no user linkage required for Day 13).
+     */
+    public void modifyTeacherDetails(TeacherDTO teacherDTO) {
+        if (teacherDTO == null || teacherDTO.getTeacherId() == null) {
+            throw new IllegalArgumentException("Invalid teacher payload (missing id).");
+        }
+
+        Teacher teacher = teacherRepository.findById(teacherDTO.getTeacherId())
+                .orElseThrow(() -> new IllegalArgumentException("Teacher not found with id: " + teacherDTO.getTeacherId()));
+
+        // Email duplicate validation (exclude self)
+        if (teacherDTO.getEmail() != null) {
+            Teacher existsByEmail = teacherRepository.findByEmail(teacherDTO.getEmail());
+            if (existsByEmail != null && !existsByEmail.getTeacherId().equals(teacherDTO.getTeacherId())) {
+                throw new TeacherAlreadyExistsException(
+                        "Another teacher already exists with email: " + teacherDTO.getEmail());
+            }
+        }
+
+        if (teacherDTO.getFullName() != null) {
+            teacher.setFullName(teacherDTO.getFullName());
+        }
+        if (teacherDTO.getSubject() != null) {
+            teacher.setSubject(teacherDTO.getSubject());
+        }
+        if (teacherDTO.getContactNumber() != null) {
+            teacher.setContactNumber(teacherDTO.getContactNumber());
+        }
+        if (teacherDTO.getEmail() != null) {
+            teacher.setEmail(teacherDTO.getEmail());
+        }
+        if (teacherDTO.getYearsOfExperience() != null) {
+            teacher.setYearsOfExperience(teacherDTO.getYearsOfExperience());
+        }
+
+        teacherRepository.save(teacher);
     }
 }
