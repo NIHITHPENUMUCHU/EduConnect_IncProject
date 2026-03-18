@@ -17,7 +17,6 @@ public class EnrollmentController {
         this.enrollmentService = enrollmentService;
     }
 
-    // GET /enrollment -> 200
     @GetMapping
     public ResponseEntity<List<Enrollment>> getAllEnrollments() {
         try {
@@ -27,47 +26,42 @@ public class EnrollmentController {
         }
     }
 
-    // POST /enrollment -> 201 or 400
     @PostMapping
     public ResponseEntity<Integer> createEnrollment(@RequestBody Enrollment enrollment) {
         try {
             int id = enrollmentService.createEnrollment(enrollment);
             return ResponseEntity.status(201).body(id);
-        } catch (RuntimeException dupOrInvalid) {
-            return ResponseEntity.badRequest().build(); // duplicate/invalid payload
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
     }
 
-    // PUT /enrollment/{enrollmentId} -> 200 or 400
     @PutMapping("/{enrollmentId}")
-    public ResponseEntity<Void> updateEnrollment(@PathVariable int enrollmentId,
-                                                 @RequestBody Enrollment enrollment) {
+    public ResponseEntity<Void> updateEnrollment(@PathVariable int enrollmentId, @RequestBody Enrollment enrollment) {
         try {
             enrollment.setEnrollmentId(enrollmentId);
             enrollmentService.updateEnrollment(enrollment);
             return ResponseEntity.ok().build();
-        } catch (RuntimeException dupOrInvalid) {
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
     }
 
-    // GET /enrollment/{enrollmentId} -> 200 or 400
     @GetMapping("/{enrollmentId}")
     public ResponseEntity<Enrollment> getEnrollmentById(@PathVariable int enrollmentId) {
         try {
             return ResponseEntity.ok(enrollmentService.getEnrollmentById(enrollmentId));
-        } catch (RuntimeException notFound) {
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
     }
 
-    // GET /enrollment/student/{studentId} -> 200
     @GetMapping("/student/{studentId}")
     public ResponseEntity<List<Enrollment>> getAllEnrollmentsByStudent(@PathVariable int studentId) {
         try {
@@ -77,7 +71,6 @@ public class EnrollmentController {
         }
     }
 
-    // GET /enrollment/course/{courseId} -> 200
     @GetMapping("/course/{courseId}")
     public ResponseEntity<List<Enrollment>> getAllEnrollmentsByCourse(@PathVariable int courseId) {
         try {

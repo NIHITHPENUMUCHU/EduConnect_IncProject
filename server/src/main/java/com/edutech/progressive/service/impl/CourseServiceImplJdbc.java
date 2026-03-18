@@ -1,16 +1,20 @@
 package com.edutech.progressive.service.impl;
 
 import com.edutech.progressive.dao.CourseDAO;
+import com.edutech.progressive.dao.CourseDAOImpl;
 import com.edutech.progressive.entity.Course;
 import com.edutech.progressive.service.CourseService;
 
 import java.sql.SQLException;
 import java.util.List;
 
-
 public class CourseServiceImplJdbc implements CourseService {
 
-    private final CourseDAO courseDAO;
+    private CourseDAO courseDAO;
+
+    public CourseServiceImplJdbc() {
+        this.courseDAO = new CourseDAOImpl();
+    }
 
     public CourseServiceImplJdbc(CourseDAO courseDAO) {
         this.courseDAO = courseDAO;
@@ -21,7 +25,7 @@ public class CourseServiceImplJdbc implements CourseService {
         try {
             return courseDAO.getAllCourses();
         } catch (SQLException e) {
-            throw new Exception("Failed to retrieve courses", e);
+            throw new Exception("Failed to fetch courses", e);
         }
     }
 
@@ -30,7 +34,7 @@ public class CourseServiceImplJdbc implements CourseService {
         try {
             return courseDAO.getCourseById(courseId);
         } catch (SQLException e) {
-            throw new Exception("Failed to retrieve course", e);
+            throw new Exception("Failed to fetch course", e);
         }
     }
 
@@ -59,10 +63,5 @@ public class CourseServiceImplJdbc implements CourseService {
         } catch (SQLException e) {
             throw new Exception("Failed to delete course", e);
         }
-    }
-
-    @Override
-    public List<Course> getAllCourseByTeacherId(int teacherId) {
-        return null; // Not used in JDBC flow
     }
 }

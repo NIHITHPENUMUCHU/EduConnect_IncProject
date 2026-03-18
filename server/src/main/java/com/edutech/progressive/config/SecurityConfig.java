@@ -1,37 +1,92 @@
+
 package com.edutech.progressive.config;
 
+import com.edutech.progressive.jwt.JwtRequestFilter; 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.config.annotation.web.configuration.*;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@EnableWebSecurity
 @Configuration
-public class SecurityConfig {
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtRequestFilter jwtRequestFilter;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityConfig(UserDetailsService userDetailsService,
+                          PasswordEncoder passwordEncoder,
+                          JwtRequestFilter jwtRequestFilter) {
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtRequestFilter = jwtRequestFilter;
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth
+            .userDetailsService(userDetailsService)
+            .passwordEncoder(passwordEncoder);
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .cors().and()
+            .csrf().disable();
 
         http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                // ✅ JWT endpoints open
-                .requestMatchers(new AntPathRequestMatcher("/auth/**")).permitAll()
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-                // ✅ Student endpoints must be PUBLIC
-                .requestMatchers(new AntPathRequestMatcher("/student/**")).permitAll()
+        http
+            .authorizeRequests()
 
-                // ✅ Teacher & Course must be PROTECTED
-                .requestMatchers(new AntPathRequestMatcher("/teacher/**")).authenticated()
-                .requestMatchers(new AntPathRequestMatcher("/course/**")).authenticated()
+                .antMatchers("/user/login", "/user/register").permitAll()
 
-                .anyRequest().permitAll()
-            )
-            // ✅ Basic auth only (no DB auth)
-            .httpBasic(Customizer.withDefaults());
+                .antMatchers(HttpMethod.GET, "/student", "/student/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/course", "/course/**").hasAnyRole("STUDENT", "TEACHER")
+                .antMatchers(HttpMethod.GET, "/course", "/course/**").hasAnyAuthority("ROLE_STUDENT","ROLE_TEACHER","STUDENT","TEACHER")
 
-        return http.build();
+                .antMatchers(HttpMethod.POST, "/student", "/student/**").hasAnyRole("STUDENT")
+                .antMatchers(HttpMethod.POST, "/student", "/student/**").hasAnyAuthority("ROLE_STUDENT","STUDENT")
+                .antMatchers(HttpMethod.PUT, "/student", "/student/**").hasAnyRole("STUDENT")
+                .antMatchers(HttpMethod.PUT, "/student", "/student/**").hasAnyAuthority("ROLE_STUDENT","STUDENT")
+                .antMatchers(HttpMethod.DELETE, "/student", "/student/**").hasAnyRole("STUDENT")
+                .antMatchers(HttpMethod.DELETE, "/student", "/student/**").hasAnyAuthority("ROLE_STUDENT","STUDENT")
+
+                .antMatchers(HttpMethod.POST, "/course", "/course/**").hasAnyRole("TEACHER")
+                .antMatchers(HttpMethod.POST, "/course", "/course/**").hasAnyAuthority("ROLE_TEACHER","TEACHER")
+                .antMatchers(HttpMethod.PUT, "/course", "/course/**").hasAnyRole("TEACHER")
+                .antMatchers(HttpMethod.PUT, "/course", "/course/**").hasAnyAuthority("ROLE_TEACHER","TEACHER")
+                .antMatchers(HttpMethod.DELETE, "/course", "/course/**").hasAnyRole("TEACHER")
+                .antMatchers(HttpMethod.DELETE, "/course", "/course/**").hasAnyAuthority("ROLE_TEACHER","TEACHER")
+
+                .antMatchers("/teacher", "/teacher/**").hasAnyRole("TEACHER")
+                .antMatchers("/teacher", "/teacher/**").hasAnyAuthority("ROLE_TEACHER","TEACHER")
+
+                .antMatchers("/enrollment", "/enrollment/**").hasAnyRole("STUDENT")
+                .antMatchers("/enrollment", "/enrollment/**").hasAnyAuthority("ROLE_STUDENT","STUDENT")
+                .antMatchers("/attendance", "/attendance/**").hasAnyRole("TEACHER")
+                .antMatchers("/attendance", "/attendance/**").hasAnyAuthority("ROLE_TEACHER","TEACHER")
+
+                .anyRequest().authenticated();
+
+        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+
+    }
+
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
     }
 }

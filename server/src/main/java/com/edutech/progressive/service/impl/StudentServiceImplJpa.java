@@ -9,8 +9,6 @@ import com.edutech.progressive.repository.EnrollmentRepository;
 import com.edutech.progressive.repository.StudentRepository;
 import com.edutech.progressive.repository.UserRepository;
 import com.edutech.progressive.service.StudentService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,28 +16,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Comparator;
 import java.util.List;
 
-@Primary
 @Service
 @Transactional
 public class StudentServiceImplJpa implements StudentService {
 
     private final StudentRepository studentRepository;
-    private final EnrollmentRepository enrollmentRepository;   // optional in tests
-    private final AttendanceRepository attendanceRepository;   // optional in tests
-    private final UserRepository userRepository;               // optional in tests
-    private final PasswordEncoder passwordEncoder;             // optional in tests
+    private final EnrollmentRepository enrollmentRepository;
+    private final AttendanceRepository attendanceRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // Minimal constructor (used by some unit tests)
-    public StudentServiceImplJpa(StudentRepository studentRepository) {
-        this.studentRepository = studentRepository;
-        this.enrollmentRepository = null;
-        this.attendanceRepository = null;
-        this.userRepository = null;
-        this.passwordEncoder = null;
-    }
-
-    // Extended constructor (used by Spring)
-    @Autowired
     public StudentServiceImplJpa(StudentRepository studentRepository,
                                  EnrollmentRepository enrollmentRepository,
                                  AttendanceRepository attendanceRepository,
@@ -63,11 +49,11 @@ public class StudentServiceImplJpa implements StudentService {
         if (student.getEmail() != null) {
             Student exists = studentRepository.findByEmail(student.getEmail());
             if (exists != null) {
-                throw new StudentAlreadyExistsException(
-                        "Student already exists with email: " + student.getEmail());
+                throw new StudentAlreadyExistsException("Student already exists with email: " + student.getEmail());
             }
         }
-        return studentRepository.save(student).getStudentId();
+        Student saved = studentRepository.save(student);
+        return saved.getStudentId();
     }
 
     @Transactional(readOnly = true)
@@ -83,11 +69,13 @@ public class StudentServiceImplJpa implements StudentService {
 
     @Override
     public void updateStudent(Student student) throws Exception {
+        if (!studentRepository.existsById(student.getStudentId())) {
+            throw new IllegalArgumentException("Student not found with id: " + student.getStudentId());
+        }
         if (student.getEmail() != null) {
             Student exists = studentRepository.findByEmail(student.getEmail());
             if (exists != null && exists.getStudentId() != student.getStudentId()) {
-                throw new StudentAlreadyExistsException(
-                        "Another student already exists with email: " + student.getEmail());
+                throw new StudentAlreadyExistsException("Another student already exists with email: " + student.getEmail());
             }
         }
         studentRepository.save(student);
@@ -95,12 +83,12 @@ public class StudentServiceImplJpa implements StudentService {
 
     @Override
     public void deleteStudent(int studentId) throws Exception {
-        if (enrollmentRepository != null) {
-            enrollmentRepository.deleteByStudentId(studentId);
+        if (!studentRepository.existsById(studentId)) {
+            throw new IllegalArgumentException("Student not found with id: " + studentId);
         }
-        if (attendanceRepository != null) {
-            attendanceRepository.deleteByStudentId(studentId);
-        }
+        attendanceRepository.deleteByStudent_StudentId(studentId);
+        enrollmentRepository.deleteByStudentId(studentId);         
+        userRepository.deleteByStudent_StudentId(studentId);       
         studentRepository.deleteById(studentId);
     }
 
@@ -110,69 +98,38 @@ public class StudentServiceImplJpa implements StudentService {
         return studentRepository.findById(studentId).orElse(null);
     }
 
-    /**
-     * Day 13: Modify student + related user (if present), with validations.
-     */
     @Override
     public void modifyStudentDetails(StudentDTO studentDTO) {
-        if (studentDTO == null || studentDTO.getStudentId() == null) {
-            throw new IllegalArgumentException("Invalid student payload (missing id).");
-        }
-
         Student student = studentRepository.findById(studentDTO.getStudentId())
                 .orElseThrow(() -> new IllegalArgumentException("Student not found with id: " + studentDTO.getStudentId()));
 
-        // Email duplicate validation (exclude self)
         if (studentDTO.getEmail() != null) {
-            Student existsByEmail = studentRepository.findByEmail(studentDTO.getEmail());
-            if (existsByEmail != null && existsByEmail.getStudentId() != studentDTO.getStudentId()) {
-                throw new StudentAlreadyExistsException(
-                        "Another student already exists with email: " + studentDTO.getEmail()
-                );
+            Student exists = studentRepository.findByEmail(studentDTO.getEmail());
+            if (exists != null && exists.getStudentId() != studentDTO.getStudentId()) {
+                throw new RuntimeException("Another student already exists with email: " + studentDTO.getEmail());
             }
         }
 
-        // Map only non-null fields
-        if (studentDTO.getFullName() != null) {
-            student.setFullName(studentDTO.getFullName());
-        }
-        if (studentDTO.getDateOfBirth() != null) {
-            student.setDateOfBirth(studentDTO.getDateOfBirth());
-        }
-        if (studentDTO.getContactNumber() != null) {
-            student.setContactNumber(studentDTO.getContactNumber());
-        }
-        if (studentDTO.getEmail() != null) {
-            student.setEmail(studentDTO.getEmail());
-        }
-        if (studentDTO.getAddress() != null) {
-            student.setAddress(studentDTO.getAddress());
-        }
-
+        student.setFullName(studentDTO.getFullName());
+        student.setDateOfBirth(studentDTO.getDateOfBirth());
+        student.setContactNumber(studentDTO.getContactNumber());
+        student.setEmail(studentDTO.getEmail());
+        student.setAddress(studentDTO.getAddress());
         studentRepository.save(student);
 
-        // Optionally update linked user if repositories are wired
-        if (userRepository != null) {
-            User user = userRepository.findByStudent_StudentId(studentDTO.getStudentId());
-            if (user != null) {
-                // Username update with duplicate check
-                if (studentDTO.getUsername() != null) {
-                    User byUsername = userRepository.findByUsername(studentDTO.getUsername());
-                    if (byUsername != null && !byUsername.getUserId().equals(user.getUserId())) {
-                        throw new IllegalArgumentException("Username already exists: " + studentDTO.getUsername());
-                    }
-                    user.setUsername(studentDTO.getUsername());
+        User user = userRepository.findByStudent_StudentId(studentDTO.getStudentId());
+        if (user != null) {
+            if (studentDTO.getUsername() != null) {
+                User byUsername = userRepository.findByUsername(studentDTO.getUsername());
+                if (byUsername != null && byUsername.getUserId() != user.getUserId()) {
+                    throw new RuntimeException("Username already exists: " + studentDTO.getUsername());
                 }
-                // Password update if provided
-                if (studentDTO.getPassword() != null && !studentDTO.getPassword().isBlank()) {
-                    if (passwordEncoder != null) {
-                        user.setPassword(passwordEncoder.encode(studentDTO.getPassword()));
-                    } else {
-                        user.setPassword(studentDTO.getPassword()); // fallback (tests might not wire encoder)
-                    }
-                }
-                userRepository.save(user);
+                user.setUsername(studentDTO.getUsername());
             }
+            if (studentDTO.getPassword() != null && !studentDTO.getPassword().isBlank()) {
+                user.setPassword(passwordEncoder.encode(studentDTO.getPassword()));
+            }
+            userRepository.save(user);
         }
     }
 }

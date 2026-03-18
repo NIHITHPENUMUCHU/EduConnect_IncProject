@@ -4,54 +4,55 @@ import com.edutech.progressive.entity.Attendance;
 import com.edutech.progressive.entity.Course;
 import com.edutech.progressive.entity.Student;
 import com.edutech.progressive.repository.AttendanceRepository;
+import com.edutech.progressive.repository.CourseRepository;
+import com.edutech.progressive.repository.StudentRepository;
 import com.edutech.progressive.service.AttendanceService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 @Service
 @Transactional
 public class AttendanceServiceImpl implements AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
+    private final CourseRepository courseRepository;
+    private final StudentRepository studentRepository;
 
-    public AttendanceServiceImpl(AttendanceRepository attendanceRepository) {
+    public AttendanceServiceImpl(AttendanceRepository attendanceRepository,
+                                 CourseRepository courseRepository,
+                                 StudentRepository studentRepository) {
         this.attendanceRepository = attendanceRepository;
+        this.courseRepository = courseRepository;
+        this.studentRepository = studentRepository;
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public List<Attendance> getAllAttendance() {
         return attendanceRepository.findAll();
     }
 
     @Override
     public Attendance createAttendance(Attendance attendance) {
-        if (attendance == null || attendance.getCourse() == null || attendance.getStudent() == null
-                || attendance.getAttendanceDate() == null || attendance.getStatus() == null
-                || attendance.getStatus().trim().isEmpty()) {
-            throw new RuntimeException("Invalid attendance payload.");
+        if (attendance.getCourse() == null || attendance.getStudent() == null || attendance.getAttendanceDate() == null) {
+            throw new RuntimeException("Course, Student and attendanceDate are required");
         }
-
         int courseId = attendance.getCourse().getCourseId();
         int studentId = attendance.getStudent().getStudentId();
         Date date = attendance.getAttendanceDate();
 
-        Optional<Attendance> exists = attendanceRepository
-                .findByCourse_CourseIdAndStudent_StudentIdAndAttendanceDate(courseId, studentId, date);
-        if (exists.isPresent()) {
-            throw new RuntimeException("Attendance already recorded for this student, course and date.");
+        if (attendanceRepository.findByCourse_CourseIdAndStudent_StudentIdAndAttendanceDate(courseId, studentId, date).isPresent()) {
+            throw new RuntimeException("Attendance already exists for this student, course and date");
         }
 
-        // Normalize associations to avoid detached/full entity persistence issues
-        Course c = new Course();
-        c.setCourseId(courseId);
-        Student s = new Student();
-        s.setStudentId(studentId);
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Invalid course"));
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Invalid student"));
 
-        attendance.setCourse(c);
-        attendance.setStudent(s);
+        attendance.setCourse(course);
+        attendance.setStudent(student);
 
         return attendanceRepository.save(attendance);
     }
@@ -59,19 +60,19 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public void deleteAttendance(int attendanceId) {
         if (!attendanceRepository.existsById(attendanceId)) {
-            throw new RuntimeException("Attendance not found.");
+            throw new RuntimeException("Attendance not found");
         }
         attendanceRepository.deleteById(attendanceId);
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public List<Attendance> getAttendanceByStudent(int studentId) {
         return attendanceRepository.findByStudent_StudentId(studentId);
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public List<Attendance> getAttendanceByCourse(int courseId) {
         return attendanceRepository.findByCourse_CourseId(courseId);
     }

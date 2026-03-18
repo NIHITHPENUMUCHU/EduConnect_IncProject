@@ -7,5 +7,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     User findByUsername(String username);
 
+    User findByTeacher_TeacherId(int teacherId);
     User findByStudent_StudentId(int studentId);
+
+    void deleteByTeacher_TeacherId(int teacherId);
+    void deleteByStudent_StudentId(int studentId);
 }

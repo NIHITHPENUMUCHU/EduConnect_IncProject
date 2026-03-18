@@ -3,7 +3,6 @@ package com.edutech.progressive.dao;
 import com.edutech.progressive.config.DatabaseConnectionManager;
 import com.edutech.progressive.dao.CourseDAO;
 import com.edutech.progressive.entity.Course;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,4 +102,3 @@ public class CourseDAOImpl implements CourseDAO {
         return list;
     }
 }
-

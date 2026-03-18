@@ -43,7 +43,7 @@ public class StudentServiceImplArraylist implements StudentService {
     @Override
     public List<Student> getAllStudentSortedByName() {
         List<Student> copy = new ArrayList<>(studentList);
-        Collections.sort(copy); // relies on Student.compareTo by fullName
+        Collections.sort(copy); 
         return copy;
     }
 
@@ -51,7 +51,7 @@ public class StudentServiceImplArraylist implements StudentService {
     public void emptyArrayList() {
         studentList = new ArrayList<>();
     }
-
+    
     @Override
     public void updateStudent(Student student) {
         if (student == null) return;

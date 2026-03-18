@@ -1,9 +1,9 @@
 package com.edutech.progressive.repository;
 
 import com.edutech.progressive.entity.Enrollment;
-import org.springframework.data.jpa.repository.*;
-import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,18 +16,15 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
 
     List<Enrollment> findAllByCourse_CourseId(int courseId);
 
-    @Transactional
     @Modifying
-    @Query("delete from Enrollment e where e.course.courseId = :courseId")
-    void deleteByCourseId(@Param("courseId") int courseId);
+    @Query("delete from Enrollment e where e.course.courseId = ?1")
+    void deleteByCourseId(int courseId);
 
-    @Transactional
     @Modifying
-    @Query("delete from Enrollment e where e.student.studentId = :studentId")
-    void deleteByStudentId(@Param("studentId") int studentId);
+    @Query("delete from Enrollment e where e.student.studentId = ?1")
+    void deleteByStudentId(int studentId);
 
-    @Transactional
     @Modifying
-    @Query("delete from Enrollment e where e.course.teacher.teacherId = :teacherId")
-    void deleteByTeacherId(@Param("teacherId") int teacherId);
+    @Query("delete from Enrollment e where e.course.teacherId = ?1")
+    void deleteByTeacherId(int teacherId);
 }

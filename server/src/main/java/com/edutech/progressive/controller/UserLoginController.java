@@ -7,95 +7,73 @@ import com.edutech.progressive.entity.User;
 import com.edutech.progressive.jwt.JwtUtil;
 import com.edutech.progressive.service.impl.UserLoginServiceImpl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/user")
 public class UserLoginController {
 
     private final UserLoginServiceImpl userLoginService;
+    private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
-    public UserLoginController(UserLoginServiceImpl userLoginService, JwtUtil jwtUtil) {
+    public UserLoginController(UserLoginServiceImpl userLoginService,
+                               AuthenticationManager authenticationManager,
+                               JwtUtil jwtUtil) {
         this.userLoginService = userLoginService;
+        this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRegistrationDTO dto) {
         try {
-            // Role check required by the test
-            if (dto.getRole() == null ||
-                !(dto.getRole().equalsIgnoreCase("STUDENT") || dto.getRole().equalsIgnoreCase("TEACHER"))) {
-                return ResponseEntity.badRequest()
-                        .body("Invalid role. Only 'STUDENT' or 'TEACHER' allowed.");
-            }
-
-            Integer id = userLoginService.registerUser(dto);
-            return ResponseEntity.status(201).body(id);
-        } catch (IllegalArgumentException ex) {
-            // Map payload/duplicate errors to 400 with message (tests assert on body)
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        } catch (Exception ex) {
-            // Day-13 evaluator also expects 400 for generic register failures
-            return ResponseEntity.badRequest().body("Registration failed.");
+            userLoginService.registerUser(dto);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequest request) {
         try {
-            // Primary path: use the service
-            LoginResponse resp = userLoginService.login(request, jwtUtil);
-            if (resp != null) {
-                return ResponseEntity.ok(resp);
-            }
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
 
-            // Fallback for null response: if user exists, still succeed
-            User u = userLoginService.getUserByUsername(request.getUsername());
-            if (u != null) {
-                String token = jwtUtil.generateToken(u.getUsername());
-                return ResponseEntity.ok(new LoginResponse(token, u.getUserId()));
-            }
-            return ResponseEntity.status(400).body(null);
+            String token = jwtUtil.generateToken(request.getUsername());
+            User user = userLoginService.getUserByUsername(request.getUsername());
 
-        } catch (org.springframework.security.core.userdetails.UsernameNotFoundException
-                 | org.springframework.security.authentication.BadCredentialsException
-                 | IllegalArgumentException ex) {
+            Integer studentId = (user.getStudent() != null) ? user.getStudent().getStudentId() : null;
+            Integer teacherId = (user.getTeacher() != null) ? user.getTeacher().getTeacherId() : null;
 
-            // Fallback on known auth failures: still succeed if user exists
-            try {
-                User u = userLoginService.getUserByUsername(request.getUsername());
-                if (u != null) {
-                    String token = jwtUtil.generateToken(u.getUsername());
-                    return ResponseEntity.ok(new LoginResponse(token, u.getUserId()));
-                }
-            } catch (Exception ignored) { /* fall through */ }
+            LoginResponse response = new LoginResponse(
+                    token,
+                    user.getRole(),
+                    user.getUserId(),
+                    studentId,
+                    teacherId
+            );
 
-            return ResponseEntity.status(400).body(null);
+            return ResponseEntity.ok(response);
 
-        } catch (Exception ex) {
-            // Last-chance fallback
-            try {
-                User u = userLoginService.getUserByUsername(request.getUsername());
-                if (u != null) {
-                    String token = jwtUtil.generateToken(u.getUsername());
-                    return ResponseEntity.ok(new LoginResponse(token, u.getUserId()));
-                }
-            } catch (Exception ignored) { /* fall through */ }
-            return ResponseEntity.status(400).body(null);
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(401).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
         }
     }
 
-
-    @GetMapping("/user/{userId}")
+    @GetMapping("/{userId}")
     public ResponseEntity<?> getUserDetails(@PathVariable int userId) {
         try {
-            User user = userLoginService.getUserDetails(userId); // service throws if not found
+            User user = userLoginService.getUserDetails(userId);
             return ResponseEntity.ok(user);
-        } catch (RuntimeException ex) {
-            // Return 400 with exact message (do NOT rethrow here)
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body("User not found with ID: " + userId);
         }
     }

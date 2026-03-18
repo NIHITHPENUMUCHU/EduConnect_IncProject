@@ -1,81 +1,51 @@
 package com.edutech.progressive.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "course")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "teacher"})
-public class Course {
+public class Course implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer courseId;
+    @Column(name = "course_id")
+    private int courseId;
 
+    @Column(name = "course_name", nullable = false, length = 255)
     private String courseName;
 
+    @Column(name = "description", length = 500)
     private String description;
 
-    // Day-7: Many-to-One relationship with Teacher using FK teacher_id
-    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
-    @JoinColumn(name = "teacher_id")
-    private Teacher teacher;
+    @Column(name = "teacher_id")
+    private int teacherId;
 
-    /**
-     * Read-only FK mirror so existing JDBC/DAO code can still do c.setTeacherId(...)
-     * JPA will not write using this column from the entity (insertable/updatable = false).
-     */
-    @Column(name = "teacher_id", insertable = false, updatable = false)
-    private Integer teacherId;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "teacher_id", insertable = false, updatable = false)
+    private Teacher teacher;
 
     public Course() {}
 
-    public Course(Integer courseId, String courseName, String description) {
+    public Course(int courseId, String courseName, String description, int teacherId) {
         this.courseId = courseId;
         this.courseName = courseName;
         this.description = description;
-    }
-
-    // Getters & setters
-
-    public Integer getCourseId() {
-        return courseId;
-    }
-    public void setCourseId(Integer courseId) {
-        this.courseId = courseId;
-    }
-
-    public String getCourseName() {
-        return courseName;
-    }
-    public void setCourseName(String courseName) {
-        this.courseName = courseName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Teacher getTeacher() {
-        return teacher;
-    }
-    public void setTeacher(Teacher teacher) {
-        this.teacher = teacher;
-    }
-
-    public Integer getTeacherId() {
-        return teacherId;
-    }
-
-    /**
-     * Kept intentionally for Day-3 JDBC compatibility where DAO code calls setTeacherId(..).
-     * Since the column is read-only for JPA, this does not affect persistence.
-     */
-    public void setTeacherId(Integer teacherId) {
         this.teacherId = teacherId;
     }
+
+    public int getCourseId() { return courseId; }
+    public String getCourseName() { return courseName; }
+    public String getDescription() { return description; }
+    public int getTeacherId() { return teacherId; }
+    public Teacher getTeacher() { return teacher; }
+
+    public void setCourseId(int courseId) { this.courseId = courseId; }
+    public void setCourseName(String courseName) { this.courseName = courseName; }
+    public void setDescription(String description) { this.description = description; }
+    public void setTeacherId(int teacherId) { this.teacherId = teacherId; }
+    public void setTeacher(Teacher teacher) { this.teacher = teacher; }
 }
