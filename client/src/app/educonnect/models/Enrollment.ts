@@ -1,15 +1,16 @@
-export class Enrollment {
-  constructor(
-    public enrollmentId?: number,
-    public studentId?: number,
-    public courseId?: number,
-    public enrollmentDate?: Date 
-  ) {}
+import { Student } from "./Student";
+import { Course } from "./Course";
 
-  public logAttributes(): void {
-    console.log('enrollmentId:', this.enrollmentId);
-    console.log('studentId:', this.studentId);
-    console.log('courseId:', this.courseId);
-    console.log('enrollmentDate:', this.enrollmentDate);
+export class Enrollment {
+  enrollmentId: number;
+  student: Student;
+  course: Course;
+  enrollmentDate: Date;
+  [key: string]: any;
+  constructor(enrollmentId: number, student: Student, course: Course, enrollmentDate: Date) {
+    this.enrollmentId = enrollmentId;
+    this.student = student;
+    this.course = course;
+    this.enrollmentDate = enrollmentDate;
   }
 }

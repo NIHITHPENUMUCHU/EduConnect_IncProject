@@ -1,15 +1,15 @@
-export class Course {
-  constructor(
-    public courseId?: number,
-    public courseName?: string,
-    public description?: string,
-    public teacherId?: number 
-  ) {}
+import { Teacher } from "./Teacher";
 
-  public logAttributes(): void {
-    console.log('courseId:', this.courseId);
-    console.log('courseName:', this.courseName);
-    console.log('description:', this.description);
-    console.log('teacherId:', this.teacherId); 
+export class Course {
+  courseId: number;
+  courseName: string;
+  description: string;
+  teacher: Teacher;
+  [key: string]: any;
+  constructor(courseId: number, courseName: string, description: string, teacher: Teacher) {
+    this.courseId = courseId;
+    this.courseName = courseName;
+    this.description = description;
+    this.teacher = teacher;
   }
 }

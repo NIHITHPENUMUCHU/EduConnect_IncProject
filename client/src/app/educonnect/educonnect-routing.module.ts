@@ -1,26 +1,23 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AuthComponent } from './auth.component';
-import { LoginComponent } from './components/login/login.component';
-import { RegistrationComponent } from './components/registration/registration.component';
-import { LogoutComponent } from './components/logout/logout.component';
- 
+import { StudentCreateComponent } from './components/studentcreate/studentcreate.component';
+import { TeacherCreateComponent } from './components/teachercreate/teachercreate.component';
+import { CourseCreateComponent } from './components/coursecreate/coursecreate.component';
+import { EnrollmentComponent } from './components/enrollment/enrollment.component';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
+
 const routes: Routes = [
-  {
-    path: 'auth',
-    component: AuthComponent,
-    children: [
-      { path: 'login', component: LoginComponent },
-      { path: 'register', component: RegistrationComponent },
-      { path: 'logout', component: LogoutComponent },
-      { path: '', redirectTo: 'login', pathMatch: 'full' }
-    ]
-  }
+  { path: 'dashboard', component: DashboardComponent },
+  { path: 'student/create', component: StudentCreateComponent },
+  { path: 'teacher/create', component: TeacherCreateComponent },
+  { path: 'course/create', component: CourseCreateComponent },
+  { path: 'enrollment/create', component: EnrollmentComponent },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
 ];
- 
+
 @NgModule({
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class AuthRoutingModule { }
- 
+
+export class EduconnectRoutingModule { }
