@@ -1,19 +1,28 @@
 import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';  
-
+import { AuthRoutingModule } from './auth-routing.module';
+import { AuthComponent } from './auth.component';
+import { LoginComponent } from './components/login/login.component';
+import { RegistrationComponent } from './components/registration/registration.component';
+import { LogoutComponent } from './components/logout/logout.component';
+ 
 @NgModule({
   declarations: [
-    AppComponent
+    AuthComponent,
+    LoginComponent,
+    RegistrationComponent,
+    LogoutComponent
   ],
   imports: [
-    BrowserModule,
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
     HttpClientModule,
-    AppRoutingModule 
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
+    RouterModule,
+    AuthRoutingModule
+  ]
 })
-export class AppModule {}
+export class AuthModule { }
