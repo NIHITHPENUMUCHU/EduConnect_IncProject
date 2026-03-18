@@ -7,16 +7,6 @@ export class Student {
     public email: string = '',
     public address: string = ''
   ) {}
+
+  [key: string]: any;
 }
- 
-export class Teacher {
-  constructor(
-    public teacherId: number,
-    public fullName: string,
-    public contactNumber: string,
-    public email: string,
-    public subject: string,
-    public yearsOfExperience: number
-  ) {}
-}
- 
