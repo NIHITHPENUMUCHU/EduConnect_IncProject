@@ -15,9 +15,9 @@ export class DashboardComponent implements OnInit {
   userId: number = 0;
 
   teacherId: number = 0;
-  teacherDetails?: Teacher;
-
   studentId: number = 0;
+
+  teacherDetails?: Teacher;
   studentDetails?: Student;
 
   courses: Course[] = [];
@@ -36,13 +36,11 @@ export class DashboardComponent implements OnInit {
     if (this.role === 'TEACHER') {
       this.loadTeacherData();
     }
-
     if (this.role === 'STUDENT') {
       this.loadStudentData();
     }
   }
 
-  // Day‑23
   loadTeacherData(): void {
     this.service.getTeacherById(this.teacherId)
       .subscribe(t => this.teacherDetails = t);
@@ -65,5 +63,18 @@ export class DashboardComponent implements OnInit {
 
     this.service.getAllCourses()
       .subscribe(c => this.courses = c);
+  }
+
+  deleteTeacher(): void {
+    const tid = this.teacherId || Number(localStorage.getItem('teacher_id')) || 1;
+    this.service.deleteTeacher(tid).subscribe(() => {
+      this.teacherDetails = undefined;
+    });
+  }
+
+  deleteCourse(courseId: number): void {
+    this.service.deleteCourse(courseId).subscribe(() => {
+      this.courses = (this.courses || []).filter(c => c.courseId !== courseId);
+    });
   }
 }

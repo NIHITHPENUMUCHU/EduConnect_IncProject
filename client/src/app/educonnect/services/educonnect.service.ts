@@ -23,7 +23,7 @@ export class EduConnectService {
 
   constructor(private http: HttpClient) {}
 
-  // -------- STUDENTS --------
+  // ---------- STUDENTS ----------
   addStudent(student: Student): Observable<Student> {
     return this.http.post<Student>(`${this.base}/students`, student, this.json);
   }
@@ -44,12 +44,24 @@ export class EduConnectService {
     return this.http.get<Student[]>(`${this.base}/students`, this.json);
   }
 
-  // -------- TEACHERS --------
+  // ---------- TEACHERS ----------
   getTeacherById(teacherId: number): Observable<Teacher> {
     return this.http.get<Teacher>(`${this.base}/teacher/${teacherId}`, this.json);
   }
 
-  // -------- COURSES --------
+  updateTeacher(teacher: any): Observable<Teacher> {
+    return this.http.put<Teacher>(
+      `${this.base}/teacher/${teacher.teacherId ?? ''}`,
+      teacher,
+      this.json
+    );
+  }
+
+  deleteTeacher(teacherId: number): Observable<any> {
+    return this.http.delete<any>(`${this.base}/teacher/${teacherId}`, this.json);
+  }
+
+  // ---------- COURSES ----------
   addCourse(course: Course): Observable<Course> {
     return this.http.post<Course>(`${this.base}/courses`, course, this.json);
   }
@@ -62,7 +74,11 @@ export class EduConnectService {
     return this.http.get<Course[]>(`${this.base}/courses/teacher/${teacherId}`, this.json);
   }
 
-  // -------- ENROLLMENTS --------
+  deleteCourse(courseId: number): Observable<any> {
+    return this.http.delete<any>(`${this.base}/courses/${courseId}`, this.json);
+  }
+
+  // ---------- ENROLLMENTS ----------
   getEnrollmentsByStudent(studentId: number): Observable<Enrollment[]> {
     return this.http.get<Enrollment[]>(
       `${this.base}/enrollments/student/${studentId}`,
@@ -70,7 +86,7 @@ export class EduConnectService {
     );
   }
 
-  // -------- USER --------
+  // ---------- USER ----------
   getUserById(userId: number): Observable<User> {
     return this.http.get<User>(`${this.base}/user/${userId}`, this.json);
   }
